@@ -1,0 +1,71 @@
+<html><head><title>MC View</title>
+<link rev="Stylesheet" rel="Stylesheet" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css" type="text/css" media="screen">
+<link rev="Stylesheet" rel="Stylesheet" href="/css/themes/dark-hive/jquery-ui.min.css" type="text/css" media="screen">
+<link rev="Stylesheet" rel="Stylesheet" href="/css/themes/dark-hive/jquery.ui.theme.css" type="text/css" media="screen">
+<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.1.min.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.23/jquery-ui.min.js"></script>
+<style type="text/css">
+body { background-color:#FFFFFF; color:#666666; font-family:Arial; font-size:12px; }
+.xpDisplay { font-size:18px; font-weight:bold; background-color:#333333; clear:both; float:left; width:60px; text-align:right;
+	padding:6px; margin-bottom:20px; margin-right:2px;  }
+.xpTotal { font-size:18px; font-weight:bold; color:#666666; background-color:#CCCCCC; float:left; width:70px; text-align:right;
+	padding:6px; margin-bottom:20px;  }
+.teamName { font-size:18px; font-weight:bold; text-align:left; margin-left:190px;  }
+.playersList { text-align:left; margin-left:190px; margin-top:2px; line-height:180%;  }
+.no-underline { text-decoration:none; }
+.playerName { color:#333333; font-size:14px; font-weight:bold;  }
+</style>
+
+<script type="text/javascript">
+
+$(window).load(function() {
+	$(document).ready(function() {
+        $.ajaxSetup({
+                type: 'POST',
+                headers: { "cache-control": "no-cache" }
+        });
+        loadData();
+	})
+});
+
+function loadData() {
+var theURL = "teams.json";
+	$.ajax({
+	  type: "GET",
+	  url: theURL,
+	  success: showData,
+	  dataType: 'json'
+	});
+}
+
+
+
+function showData(data) {
+var i;
+for (i=0;i<data.length;i++) {
+	var team = data[i];
+	$('#teamsDisplay').append("<div class=\"ui-widget ui-state-default ui-corner-all xpDisplay \">" + team['XpLevel'] + "</div>");
+	$('#teamsDisplay').append("<div class=\"ui-widget ui-state-default ui-corner-all xpTotal \">" + team['XpTotal'] + "</div>");
+	$('#teamsDisplay').append("<div class=\"teamName\">" + team['DisplayName'] + "</div>");
+	//$('#teamsDisplay').append("<div class=\"playersList\">" + team['PlayerNames'].join(', ') + "</div><br clear=\"all\"/>");
+	var playerList = ("<div class=\"playersList\">");
+	var p;
+	for (p=0;p<team['Players'].length;p++) {
+		playerList += ("<a href=\"player.html?" + team['Players'][p]['Name'] + "\" class=\"no-underline playerName\">" + team['Players'][p]['Name'] + "</a>&nbsp;(" + team['Players'][p]['XpLevel'] + " / " + team['Players'][p]['XpTotal'] + ")&nbsp;&nbsp; ");
+	}
+	playerList += ("</div><br clear=\"all\"/>");
+	$('#teamsDisplay').append(playerList);
+}
+
+}
+
+
+
+</script>
+</head>
+<body>
+<div id="teamsDisplay"></div>
+</body>
+</html>
+

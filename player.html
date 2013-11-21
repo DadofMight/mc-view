@@ -1,0 +1,242 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/1999/REC-html401-19991224/loose.dtd">
+<html lang="en">
+<HEAD>
+<TITLE>Player Details</TITLE>
+<link rev="Stylesheet" rel="Stylesheet" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css" type="text/css" media="screen">
+<link rev="Stylesheet" rel="Stylesheet" href="/css/themes/dark-hive/jquery-ui.min.css" type="text/css" media="screen">
+<link rev="Stylesheet" rel="Stylesheet" href="/css/themes/dark-hive/jquery.ui.theme.css" type="text/css" media="screen">
+<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.1.min.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.23/jquery-ui.min.js"></script>
+
+<script type="text/javascript" src="blockIDs.js"></script>
+<script type="text/javascript" src="achievements.js"></script>
+<link rev="Stylesheet" rel="Stylesheet" href="mc-view.css" type="text/css" media="screen">
+
+
+<style type="text/css">
+body { background-color:#FFFFFF; color:#666666; font-family:Arial; font-size:12px; }
+.detailsText { color:#666666; }
+.inventoryBox { float:left; height:32px; width:32px; margin:4px; border-style:solid; border-width:1px; border-color:#999999;
+	background-color:#EEEEEE;
+        -moz-border-radius:3px;
+        border-radius:3px;
+ }
+.inventoryCounter { background-color: #333333; color: #FFFFFF; font-size:10px; padding:3px; margin:22px 0px 0px 18px;
+        -moz-border-radius:2px;
+        border-radius:2px;
+			opacity:.8; }
+.inputitem { padding:4px; 
+		font-size:12px; 
+		-moz-border-radius:3px;
+        border-radius:3px;
+        background-color:#333333;
+        color:#cccccc;
+ }
+.inputlabel { font-size:12px; margin-top:3px;
+}
+
+.statsBox { float:left; height:84px; width:92px; margin:20px 4px 0px 4px; text-align:center;  }
+.statsIcon { height:32px; width:32px; }
+.statsLabel { font-size:10px; margin-top:3px; }
+.statsCounter { font-size:18px; margin-top:3px; }
+.greyed { opacity:.2; }
+#wrapper { background-color:#000000; text-align:left; border-style:solid; border-width:1px; border-color:#999999;
+	background-color:#222222; padding:10px;
+        -moz-border-radius:3px;
+        border-radius:3px; width:80%; margin-left:auto; margin-right:auto; }
+#inventoryDisplay { clear:both; width:410px; margin:20px 0px 20px 0px; }
+#statsDisplay { clear:both; margin:20px 0px 20px 0px; }
+#blockThumb { border-style:solid;border-width:1px;border-color:#CCCCCC; height:32px; width:32px; }
+#blockThumbDiv { float:left; height:32px; width:32px; margin:46px 20px 80px 20px;   }
+#blockSaveButton { margin-top:10px; }
+#blockQueryDiv { margin:0px 0px 10px 0px;  }
+.selectedInventoryBox { border-color:#FFFFFF; }
+.detailsLink { cursor:pointer; }
+.no-underline { text-decoration:none; color:#666666; }
+</style>
+
+<script type="text/javascript">
+var tableData = new Array();
+var playerData;
+var statsData;
+var playerName = '';
+
+$(window).load(function() {
+	$(document).ready(function() {
+        $.ajaxSetup({
+                type: 'POST',
+                headers: { "cache-control": "no-cache" }
+        });
+	    loadPlayerData();
+	})
+});
+
+function loadPlayerData() {
+if (document.location.href.indexOf('?') > 0) {
+	playerName = document.location.href.substring(document.location.href.indexOf('?')+1);
+}
+var theURL = "players/" + playerName.toLowerCase() + ".json";
+	$.ajax({
+	  type: "GET",
+	  url: theURL,
+	  success: showPlayerData,
+	  dataType: 'json'
+	});
+}
+
+
+
+function showPlayerData(data) {
+var idx;
+var out = '';
+playerData = data;
+playerData['itemsBySlot'] = new Array();
+
+if (playerData['Items']) {
+	for (idx=0;idx<playerData['Items'].length;idx++) {
+		var blockID = playerData['Items'][idx]['id'] + "-0";
+		if (blocksByID[blockID]) {
+			playerData['Items'][idx]['name'] = blocksByID[blockID]['name'];
+		}
+		var slot = playerData['Items'][idx]['Slot'];
+		playerData['itemsBySlot'][slot] = playerData['Items'][idx];
+	}
+	out += "<div>" + getInventoryDisplay(playerData) + "</div>";
+}
+
+$('#playerName').html("Player Details for: " + playerName);
+$('#inventoryDisplay').html(out);
+loadStats();
+}
+
+
+
+
+function getInventoryDisplay(data) {
+var out = '';
+var i = 0;
+console.log("Data: " + data);
+console.log("itemsBySlot: " + data['itemsBySlot']);
+out += "<br clear=\"all\"><div class=\"detailsText\">Armor</div>";
+for (i=100;i<104;i++) {
+	var item = data['itemsBySlot'][i];
+	if (item) {
+		out += '<div class="inventoryBox sprite-4-' + item['id'] + '-0\">&nbsp;</div>';
+		console.log("Armor item " + i + "=" + item['id'] + " : " + item['name']);
+	} else {
+		out += '<div class="inventoryBox">&nbsp;</div>';
+	}
+	//out += "<br clear=\"all\">";
+}
+out += "<br clear=\"all\"><div class=\"detailsText\">Inventory</div>";
+for (i=9;i<36;i++) {
+	var item = data['itemsBySlot'][i];
+	if (item) {
+		console.log("Inventory item " + i + "=" + item['id'] + " : " + item['name']);
+		out += '<div class="inventoryBox sprite-4-' + item['id'] + '-0\"><div class=\"inventoryCounter\">' + item['Count'] + '</div></div>';
+	} else {
+		out += '<div class="inventoryBox">&nbsp;</div>';
+	}
+}
+out += '<br clear="all"/>';
+for (i=0;i<9;i++) {
+	var item = data['itemsBySlot'][i];
+	if (item) {
+		console.log("Inventory item " + i + "=" + item['id'] + " : " + item['name']);
+		out += '<div class="inventoryBox sprite-4-' + item['id'] + '-0\"><div class=\"inventoryCounter\">' + item['Count'] + '</div></div>';
+	} else {
+		out += '<div class="inventoryBox">&nbsp;</div>';
+	}
+}
+return(out);
+}
+
+
+
+
+
+
+
+
+
+function loadStats() {
+var theURL = "stats/" + playerName.toLowerCase() + ".json";
+	$.ajax({
+	  type: "GET",
+	  url: theURL,
+	  success: showStatsData,
+	  dataType: 'json'
+	});
+}
+
+function showStatsData(data) {
+var idx;
+var out = '';
+playerData['Stats'] = data;
+
+if (playerData['Stats']) {
+	var allBiomes = data['achievement.exploreAllBiomes']['value'] == 1 ? "Yes" : "Not Yet";
+	out += "<div>Explored All Biomes? " + allBiomes + "</div>";
+	out += "<div>Biomes Visited: " + data['achievement.exploreAllBiomes']['progress'].join(', ') + "</div>";
+}
+out += getAchievementsDisplay();
+$('#statsDisplay').html(out);
+}
+
+
+
+
+function getAchievementsDisplay() {
+var out = '';
+var i;
+for (i=0;i<achievements.length;i++) {
+	var a;
+	if (achievements[i]['name'] == "exploreAllBiomes") {
+		a = playerData['Stats']['achievement.'+achievements[i]['name']['value']];
+	} else {
+		a = playerData['Stats']['achievement.'+achievements[i]['name']];
+	}
+	var iconClasses = "statsIcon";
+	a = a ? a : '';
+	if (a == '') {
+		iconClasses +=  " greyed";
+	}
+	out += ("<div class=\"statsBox\">" + 
+		"<img class=\"" + iconClasses + "\" src=\"images/icon_" + achievements[i]['name'] + ".png\"/>" + 
+		"<div class=\"statsLabel\">" + achievements[i]['label'] + "</div>" + 
+		"<div class=\"statsCounter\">" + a + "</div>" + 
+		"</div>");
+}
+return(out);
+}
+
+
+
+
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-3986669-20', 'jacobandxander.com');
+  ga('send', 'pageview');
+
+</script>
+</HEAD>
+<BODY>
+<div style="margin:20px;"><a href="javascript:window.history.back();" class="no-underline">&lt; -- Back</a></div>
+<div id="bodyhtml">
+	<h1 id="playerName"></h1>
+	<div id="inventoryDisplay"></div><br clear="all"/>
+	<div id="statsDisplay"></div>
+</div>
+
+<div id="dialog"></div>
+
+
+</body>
+</html>
